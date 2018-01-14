@@ -92,6 +92,7 @@ originW_w = zeros(RegNum+MemNum,QvNum);
 initializeWeights();
 goodStart = false;
 pnoOut = 0;
+reset_input = false;
 for trial =1:250000
     fprintf('iteration : %d\t',trial);
     % show empty screen for one time step
@@ -130,6 +131,9 @@ for trial =1:250000
             if(isnan(Qva_pre))
                 Qva_pre = Qv(Qa(2));
             end
+            if(reset_input)
+                Qv(Qa(2)) = 0;
+            end
             rpe = cur_reward + gama * Qv(Qa(2)) - Qva_pre;
             z = zeros(1,QvNum);
             z(Qa(2)) = 1;
@@ -167,6 +171,7 @@ for trial =1:250000
             % check whether the model has learned to fixate
             if(1 < pno && pno < 4 && Qa(2)~=2)
                 abortTrial = true;
+                reset_input = true;
                 pnoOut = pno;
             else
                 if(1 == pno)
@@ -174,6 +179,7 @@ for trial =1:250000
                     goodStart = goodStart|| (Qa(2)==2);
                     if(ts==phases_dur(1) && Qa(2)~=2)
                         abortTrial = true;
+                        reset_input = true;
                         pnoOut = pno;
                     end
                 end
@@ -184,6 +190,7 @@ for trial =1:250000
             else
                 cur_reward = r_f * reward(pno,Qa(2));
                 trialSucc = (cur_reward>0);
+                reset_input = (Qa(2)~=2);
             end
             if(pno==1 && fixSucc>=2)
                 break;
@@ -263,6 +270,7 @@ p(3).Marker = 'o';
         tag_mem = zeros(inputsize*2,MemNum);
         tag_A2Q = zeros(RegNum+MemNum, QvNum);
         sTrace = zeros(inputsize*2, MemNum);
+        reset_input = false;
         rpe = 0;
     end
 
